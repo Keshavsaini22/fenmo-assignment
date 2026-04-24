@@ -15,6 +15,10 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
 
+app.get('/', (req: Request, res: Response) => {
+    res.status(200).json({ status: 'success', message: 'Fenmo Tracking API is fully online and reachable.' });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/expenses', expenseRoutes);
@@ -29,3 +33,5 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+export default app;
