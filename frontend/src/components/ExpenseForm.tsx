@@ -9,7 +9,12 @@ import type { Category } from '../store/expenseSlice';
 import { addExpense, clearAddError } from '../store/expenseSlice';
 
 const schema = z.object({
-  amount: z.coerce.number().positive({ message: 'Must be positive' }),
+  amount: z.coerce.number()
+    .positive({ message: 'Must be positive' })
+    .max(99999999.99, { message: 'Maximum 8 numeric digits allowed' })
+    .refine((val) => /^\d+(\.\d{1,2})?$/.test(val.toString()), {
+      message: 'Maximum 2 decimal places allowed'
+    }),
   description: z.string().min(1, { message: 'Description is required' }),
   date: z.string().min(1, { message: 'Date is required' }),
   categoryId: z.string().min(1, { message: 'Category is required' }),
@@ -19,9 +24,10 @@ type ExpenseSchema = z.infer<typeof schema>;
 
 interface Props {
   categories: Category[];
+  onExpenseAdded?: () => void;
 }
 
-const ExpenseForm = ({ categories }: Props) => {
+const ExpenseForm = ({ categories, onExpenseAdded }: Props) => {
   const dispatch = useAppDispatch();
   const { isAdding, addError } = useAppSelector(state => state.expenses);
   const [idempotencyKey, setIdempotencyKey] = useState(uuidv4());
@@ -29,11 +35,10 @@ const ExpenseForm = ({ categories }: Props) => {
   const { register, handleSubmit, reset, control, formState: { errors } } = useForm<ExpenseSchema>({
     resolver: zodResolver(schema) as any,
     defaultValues: {
-      date: new Date().toISOString().split('T')[0], // Default to today YYYY-MM-DD
+      date: new Date().toISOString().split('T')[0],
     }
   });
 
-  // Ensure fresh UUID on mount
   useEffect(() => {
     setIdempotencyKey(uuidv4());
   }, []);
@@ -41,21 +46,20 @@ const ExpenseForm = ({ categories }: Props) => {
   const onSubmit = async (data: ExpenseSchema) => {
     dispatch(clearAddError());
     
-    // Formatting date to ISO-8601 for Prisma
     const formattedData = {
       ...data,
       date: new Date(data.date).toISOString(),
     };
 
-    // We pass the idempotency key ensuring duplicate submits due to network failure are caught
     const actionResult = await dispatch(addExpense({
       expenseData: formattedData,
       idempotencyKey
     }));
 
     if (addExpense.fulfilled.match(actionResult)) {
-      reset(); // Reset form
-      setIdempotencyKey(uuidv4()); // Gen a new key for the next expense
+      reset();
+      setIdempotencyKey(uuidv4());
+      if (onExpenseAdded) onExpenseAdded();
     }
   };
 
@@ -72,7 +76,7 @@ const ExpenseForm = ({ categories }: Props) => {
           fullWidth
           margin="normal"
           size="small"
-          slotProps={{ htmlInput: { step: 'any' } }}
+          slotProps={{ htmlInput: { step: '0.01', min: '0.01', max: '99999999.99' } }}
           {...register('amount')}
           error={!!errors.amount}
           helperText={errors.amount?.message}

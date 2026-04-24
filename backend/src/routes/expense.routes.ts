@@ -8,7 +8,12 @@ const router = Router();
 
 const createExpenseSchema = z.object({
     body: z.object({
-        amount: z.number().positive(),
+        amount: z.number()
+            .positive()
+            .max(99999999.99)
+            .refine((val) => /^\d+(\.\d{1,2})?$/.test(val.toString()), {
+                message: 'Maximum 2 decimal places allowed'
+            }),
         description: z.string().min(1),
         date: z.string().datetime(),
         categoryId: z.string().uuid(),

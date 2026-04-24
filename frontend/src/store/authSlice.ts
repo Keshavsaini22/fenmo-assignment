@@ -25,21 +25,23 @@ const initialState: AuthState = {
     error: null,
 };
 
-export const login = createAsyncThunk('auth/login', async (credentials: any, { rejectWithValue }) => {
+export const login = createAsyncThunk('auth/login', async (credentials: Record<string, unknown>, { rejectWithValue }) => {
     try {
         const response = await api.post('/auth/login', credentials);
         return response.data;
-    } catch (error: any) {
-        return rejectWithValue(error.response?.data?.error || 'Login failed');
+    } catch (error: unknown) {
+        const err = error as { response?: { data?: { error?: string } } };
+        return rejectWithValue(err.response?.data?.error || 'Login failed');
     }
 });
 
-export const register = createAsyncThunk('auth/register', async (credentials: any, { rejectWithValue }) => {
+export const register = createAsyncThunk('auth/register', async (credentials: Record<string, unknown>, { rejectWithValue }) => {
     try {
         const response = await api.post('/auth/register', credentials);
         return response.data;
-    } catch (error: any) {
-        return rejectWithValue(error.response?.data?.error || 'Registration failed');
+    } catch (error: unknown) {
+        const err = error as { response?: { data?: { error?: string } } };
+        return rejectWithValue(err.response?.data?.error || 'Registration failed');
     }
 });
 

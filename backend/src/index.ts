@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -18,6 +18,11 @@ app.use(morgan('dev'));
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/expenses', expenseRoutes);
+
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    console.error(`Unhandled Exception: ${err.message}`);
+    res.status(500).json({ error: 'Internal server error', details: process.env.NODE_ENV === 'development' ? err.message : undefined });
+});
 
 const PORT = process.env.PORT || 4000;
 

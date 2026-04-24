@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
+import { JwtPayload } from 'jsonwebtoken';
 import { verifyToken } from '../services/auth.service';
 
 export interface AuthRequest extends Request {
-    user?: any;
+    user?: string | JwtPayload | object | any;
 }
 
 export const authenticateJWT = (req: AuthRequest, res: Response, next: NextFunction) => {
