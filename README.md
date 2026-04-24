@@ -1,63 +1,78 @@
 # Fenmo Expense Tracker
 
-A production-ready full-stack Expense Tracker built for robustness under real-world network conditions.
+A production-ready full-stack Expense Tracker built for robustness under real-world network conditions. This project fulfills the requirements of the full-stack assignment.
 
-## Key Design Decisions
-- **Idempotency Strategy For Resilience**: We handle flaky networks and double-clicks by letting the frontend assign a UUID `idempotencyKey` per form-render. The backend strictly prevents duplicates on this key allowing safe generic retries and `POST` idempotence.
-- **Relational Integrity**: PostgreSQL orchestrated by Prisma ensures atomicity and explicit table relationships between `User`, `Expense`, and `Category`. Seeders automatically bootstrap the initial dynamic categories for you.
-- **Redux Thunk & Vite**: RTK (`Redux Toolkit`) slices naturally integrate our business state safely and the Thunk lifecycle handles Loading and Error boolean states directly attached to the forms globally.
-- **Dynamic Theming with Material UI**: Implemented a responsive Dark UI theme designed to provide a premium and professional finish natively.
+##  Git repository
+- **Repository:** [https://github.com/Keshavsaini22/fenmo-assignment](https://github.com/Keshavsaini22/fenmo-assignment)
 
-## Trade-offs Made (Timebox)
-- Custom pagination was skipped for now; `fetchExpenses` returns all expenses of a user, relying on frontend CSS to scale until datasets grow heavily.
-- Granular tests setup (Jest/Cypress) are currently omitted due to the condensed timeline, replaced by strong Zod Type-Safe payload contracts natively acting as structural integration boundaries.
+##  Live Demo
+- **Frontend:** [https://fenmo-assignment-kri8.vercel.app/](https://fenmo-assignment-kri8.vercel.app/)
+- **Backend API:** [https://fenmo-assignment-azure.vercel.app/](https://fenmo-assignment-azure.vercel.app/)
 
-## Intentionally Excluded
-- Password reset and email confirmation flows are not built.
-- We did not utilize RTK Query, as redux-thunk was chosen per specific constraints which provided adequate and precise architectural flexibility for this exact layout model.
-- Redux slices do not persist across refreshes via Redux-Persist. Token storage is standard `localStorage` relying on manual slice bootstrap logic.
+##  Key Features
+- **Accurate Expense Recording:** Capture amount, category, description, and date.
+- **Data Integrity:** Strict usage of `Decimal(10, 2)` for financial accuracy.
+- **Resilient Postings:** Built-in idempotency to prevent duplicate entries during network retries.
+- **Infinite Scrolling:** Server-side offset pagination for smooth list browsing.
+- **Dynamic Filtering & Sorting:** Real-time filtering by category and chronological sorting.
+- **Visual Analytics:** Total visible expenses counter with smooth transitions.
+- **Secure Authentication:** JWT-based user isolation and session management.
 
-## How to Start Locally
+## 🛠 Tech Stack
+- **Frontend:** React, Redux Toolkit, Material UI, Vite
+- **Backend:** Node.js, Express, Prisma ORM, Zod, JWT
+- **Database:** PostgreSQL (Aiven for production, Docker for local)
+- **Testing:** Jest, AAA Pattern Unit Tests
 
-Make sure you have Docker running locally.
+##  Key Design Decisions
+- **Idempotency Strategy**: We handle flaky networks and double-clicks by letting the frontend assign a UUID `idempotencyKey` per form-render. The backend strictly prevents duplicates on this key, allowing safe generic retries and `POST` idempotence.
+- **Relational Persistence (PostgreSQL)**: Chosen over NoSQL or in-memory stores to guarantee ACID compliance and relational integrity for financial data. Prisma provides excellent type-safety and developer experience.
+- **State Management**: Redux Toolkit was chosen for its robust handling of asynchronous state (Thunks) and centralized business logic, which is essential for a data-heavy dashboard.
+- **Production Hardening:** Strictly enforced Zod schemas on both frontend and backend to act as a double-layer of structural validation.
 
-### 1. Database
+##  Trade-offs & Current Scope
+- **Pagination Strategy**: Implemented offset-based pagination (`skip`/`take`) which is highly performant for standard datasets but may require cursor-based pagination for millions of rows.
+- **Testing Coverage**: Focused on core business logic (Controllers) and data correctness through Unit Tests following the AAA (Arrange-Act-Assert) pattern. Full E2E coverage was omitted in favor of manual end-to-end verification.
+- **Auth Scope**: Focused on robust Register/Login/Session flows. Features like "Forgot Password" or 2FA were omitted to prioritize core transaction reliability.
+
+##  How to Start Locally
+
+### 1. Database Setup
+Make sure you have Docker running.
 ```bash
 docker compose up -d
 ```
 
-### 2. Backend Environment Verification
-Ensure there is a `.env` file present within `/backend`. It explicitly leverages the following (dynamically configured earlier):
-```bash
-DATABASE_URL="postgresql://fenmo:fenmopassword@localhost:5433/fenmodb?schema=public"
-JWT_SECRET="supers3cr3t-fenmo-key-in-prod-should-be-random"
-PORT=4000
-```
+### 2. Backend Setup
+1. Enter the directory: `cd backend`
+2. Configure `.env`:
+   ```bash
+   DATABASE_URL="postgresql://fenmo:fenmopassword@localhost:5433/fenmodb?schema=public"
+   JWT_SECRET="development-secret"
+   PORT=4000
+   ```
+3. Run initialization:
+   ```bash
+   npm install
+   npx prisma migrate dev
+   npx prisma db seed
+   npm run dev
+   ```
 
-### 3. Backend Execution
-Open a terminal inside `/backend`:
-```bash
-npm install
-npx prisma generate
-npx prisma migrate dev --name init
-### 4. Viewing the Database (Prisma Studio)
-To visually inspect and manage your database GUI provided natively by Prisma, open a terminal in the `/backend` directory and run:
-```bash
-npx prisma studio
-```
-It will open the graphical interface at `http://localhost:5555`.
+### 3. Frontend Setup
+1. Enter the directory: `cd frontend`
+2. Configure `.env.local`:
+   ```bash
+   VITE_API_BASE_URL=http://localhost:4000/api
+   ```
+3. Start the UI:
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-### 5. Frontend Environment Verification
-Ensure there is a `.env` file present within `/frontend`. It sets up connection routing:
+##  Running Tests
 ```bash
-VITE_API_BASE_URL=http://localhost:4000/api
+cd backend
+npm test
 ```
-
-### 5. Frontend Execution
-Open another terminal inside `/frontend`:
-```bash
-npm install
-npm run dev
-```
-
-Browse to `http://localhost:5173`. Register an account, log in, and track your expenses!
