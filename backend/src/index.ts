@@ -12,7 +12,7 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(cors());
-app.use(helmet());
+app.use(helmet()); 
 app.use(morgan('dev'));
 
 app.get('/', (req: Request, res: Response) => {
